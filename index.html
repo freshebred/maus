@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maus Artistic Project - Nam Hoang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Special+Elite&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #202024;
+        }
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: #080808;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2.2rem;
+            transition: opacity 0.9s ease;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #loading-title {
+            font-family: 'UnifrakturCook', cursive;
+            font-size: clamp(2rem, 5.5vw, 4.2rem);
+            color: #e8e0d0;
+            letter-spacing: 0.04em;
+            text-align: center;
+            line-height: 1.25;
+            text-shadow:
+                0 0 60px rgba(200, 180, 140, 0.15),
+                -2px -2px 0 #000,
+                2px 2px 0 #000;
+            user-select: none;
+        }
+
+        #loading-rule {
+            width: clamp(160px, 40vw, 320px);
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(200, 180, 140, 0.5), transparent);
+        }
+
+        #loading-subtitle {
+            font-family: 'Special Elite', cursive;
+            font-size: clamp(0.85rem, 2.2vw, 1.1rem);
+            color: #888;
+            text-align: center;
+            max-width: 380px;
+            line-height: 1.85;
+            padding: 0 1.5rem;
+        }
+
+        #start-btn {
+            font-family: 'Special Elite', cursive;
+            font-size: clamp(0.85rem, 2vw, 1rem);
+            color: #c8b888;
+            background: transparent;
+            border: 1px solid rgba(200, 180, 140, 0.35);
+            padding: 0.9rem 3.5rem;
+            cursor: pointer;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+            margin-top: 0.5rem;
+        }
+
+        #start-btn:hover {
+            background: rgba(200, 180, 140, 0.07);
+            border-color: rgba(200, 180, 140, 0.75);
+            color: #e8d8a8;
+        }
+
+        #start-btn:active {
+            background: rgba(200, 180, 140, 0.14);
+        }
+
+        #scene {
+            position: fixed;
+            inset: 0;
+        }
+
+        /* Layer 0 — cycling background */
+        #bg-wrapper {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        #bg-slide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            object-fit: cover;
+        }
+
+        #vladek-wrapper {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #vladek-wrapper.shaking {
+            animation: cameraShake 15s infinite ease-in-out;
+            transform-origin: center center;
+        }
+
+        @keyframes cameraShake {
+            0%   { transform: translate(0px, 0px) rotate(0deg); }
+            10%  { transform: translate(-0.5px, -1.5px) rotate(-0.1deg); }
+            21%  { transform: translate(-1.5px, 0px) rotate(0.1deg); }
+            32%  { transform: translate(1.5px, 1.0px) rotate(0deg); }
+            43%  { transform: translate(0.5px, -0.5px) rotate(0.1deg); }
+            54%  { transform: translate(-1.0px, 1.5px) rotate(-0.1deg); }
+            65%  { transform: translate(1.5px, 0px) rotate(0deg); }
+            76%  { transform: translate(-0.5px, 1.5px) rotate(0.1deg); }
+            87%  { transform: translate(-1.5px, -1.5px) rotate(-0.1deg); }
+            98%  { transform: translate(1.0px, -1.0px) rotate(0.1deg); }
+            100% { transform: translate(0px, 0px) rotate(0deg); }
+        }
+
+        #vladek {
+            position: absolute;
+            display: block;
+            left: 50%;
+            height: 100vh;
+            width: auto;
+            top: 0;
+            transform: translateX(-50%) translateY(150px);
+            opacity: 0.9;
+            pointer-events: auto;
+        }
+
+        #vladek.zooming {
+            animation: slowZoomLandscape 180s linear forwards;
+        }
+
+        @keyframes slowZoomLandscape {
+            0% { transform: translateX(-50%) translateY(150px) scale(1); }
+            100% { transform: translateX(-50%) translateY(150px) scale(2); }
+        }
+
+        @media (orientation: portrait) {
+            #vladek {
+                width: 100vw;
+                height: auto;
+                top: unset;
+                bottom: 0;
+                transform: translateX(-50%) translateY(50px);
+            }
+
+            #vladek.zooming {
+                animation: slowZoomPortrait 180s linear forwards;
+            }
+        }
+
+        @keyframes slowZoomPortrait {
+            0% { transform: translateX(-50%) translateY(50px) scale(1); }
+            100% { transform: translateX(-50%) translateY(50px) scale(1.2); }
+        }
+
+        #vignette {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: radial-gradient(ellipse at center,
+                    transparent 30%,
+                    rgba(0, 0, 0, 0.38) 100%);
+            pointer-events: none;
+        }
+
+        #static-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        #dialogue-box {
+            position: fixed;
+            z-index: 10;
+            bottom: 28%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'UnifrakturCook', cursive;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 700;
+            color: #f0e8d0;
+            text-align: center;
+            max-width: 82vw;
+            line-height: 1.25;
+            pointer-events: none;
+
+            text-shadow:
+                -3px -3px 0 #000,
+                3px -3px 0 #000,
+                -3px 3px 0 #000,
+                3px 3px 0 #000,
+                -4px 0 0 #000,
+                4px 0 0 #000,
+                0 -4px 0 #000,
+                0 4px 0 #000,
+                0 0 20px rgba(0, 0, 0, 0.9);
+
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #dialogue-box.visible {
+            opacity: 1;
+        }
+
+        #info-btn {
+            position: fixed;
+            bottom: 1.4rem;
+            left: 1.4rem;
+            z-index: 20;
+            font-family: 'Special Elite', cursive;
+            font-size: 0.8rem;
+            color: rgba(200, 180, 140, 0.7);
+            background: transparent;
+            border: 1px solid rgba(200, 180, 140, 0.3);
+            padding: 0.45rem 1.1rem;
+            cursor: pointer;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            transition: color 0.25s, border-color 0.25s, background 0.25s;
+        }
+
+        #info-btn:hover {
+            color: #e8d8a8;
+            border-color: rgba(200, 180, 140, 0.7);
+            background: rgba(200, 180, 140, 0.06);
+        }
+
+        #info-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        #info-modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #info-modal {
+            background: #111010;
+            border: 1px solid rgba(200, 180, 140, 0.22);
+            max-width: 560px;
+            width: 100%;
+            padding: 2.4rem 2.6rem;
+            position: relative;
+        }
+
+        #info-modal-close {
+            position: absolute;
+            top: 0.9rem;
+            right: 1.1rem;
+            background: none;
+            border: none;
+            color: rgba(200, 180, 140, 0.55);
+            font-family: 'Special Elite', cursive;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        #info-modal-close:hover { color: #e8d8a8; }
+
+        #info-modal h2 {
+            font-family: 'UnifrakturCook', cursive;
+            font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+            color: #e8e0d0;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.04em;
+        }
+
+        #info-modal p {
+            font-family: 'Special Elite', cursive;
+            font-size: clamp(0.82rem, 2vw, 0.97rem);
+            color: #999;
+            line-height: 1.9;
+        }
+
+        #info-modal a {
+            color: rgba(200, 180, 140, 0.7);
+            text-decoration: none;
+            transition: color 0.25s;
+        }
+
+        #info-modal a:hover {
+            color: #e8d8a8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading-screen">
+        <div id="loading-title">Haunted by the Past<br><span style="font-size:0.65em; letter-spacing:0.12em;">— Nam Hoang</span></div>
+        <div id="loading-rule"></div>
+        <p id="loading-subtitle">
+            My artistic experience requires audio<br>to be fully realized.
+        </p>
+        <button id="start-btn">Allow Audio &amp; Enter</button>
+    </div>
+
+    <div id="scene">
+        <div id="bg-wrapper">
+            <img id="bg-slide" src="assets/image/back1.png" alt="">
+        </div>
+        <div id="vladek-wrapper">
+            <img id="vladek" src="assets/image/croppedVladek.png" alt="Vladek">
+        </div>
+        <div id="vignette"></div>
+        <canvas id="static-canvas"></canvas>
+    </div>
+
+    <div id="dialogue-box"></div>
+
+    <button id="info-btn">Info</button>
+    <div id="info-modal-overlay">
+        <div id="info-modal">
+            <button id="info-modal-close" aria-label="Close">&times;</button>
+            <h2>Artist Statement</h2>
+            <p>
+                The art and code in this project is drawn and written digitally by Nam Hoang
+                as an artistic project responding to Q3 MAUS research project.<br><br>
+                This piece depicts Vladek in his prisoner&rsquo;s suit, staring soullessly at the reader,
+                illustrating his blankness of what he had gone through. His mental clock had forever
+                stopped in 1944, during the war and can never escape the war inside his mind despite
+                peacetime had come.<br><br>
+                <span style="font-size: 0.85em;">Open-source code at <a href="https://github.com/freshebred/maus.git" target="_blank">https://github.com/freshebred/maus.git</a></span>
+            </p>
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
+    <script>
+        'use strict';
+
+        const BG_IMAGES = [
+            'assets/image/back1.png',
+            'assets/image/back2.png',
+            'assets/image/back3.png',
+        ];
+
+        const bgSlide = document.getElementById('bg-slide');
+        let bgFrame = 0;
+        let bgRotation = 0;
+
+        function applyBgSize() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const sideways = bgRotation === 90 || bgRotation === 270;
+            bgSlide.style.width = (sideways ? vh : vw) + 'px';
+            bgSlide.style.height = (sideways ? vw : vh) + 'px';
+            bgSlide.style.transform = `translate(-50%, -50%) rotate(${bgRotation}deg)`;
+        }
+
+        function cycleBg() {
+            bgSlide.src = BG_IMAGES[bgFrame];
+            bgFrame++;
+            if (bgFrame >= BG_IMAGES.length) {
+                bgFrame = 0;
+                bgRotation = (bgRotation + 90) % 360;
+                applyBgSize();
+            }
+        }
+
+        window.addEventListener('resize', applyBgSize);
+        applyBgSize();
+        setInterval(cycleBg, 100);
+
+        const canvas = document.getElementById('static-canvas');
+        const ctx = canvas.getContext('2d');
+        let idata, pixels32;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            idata = ctx.createImageData(canvas.width, canvas.height);
+            pixels32 = new Uint32Array(idata.data.buffer);
+        }
+
+        function drawNoise() {
+            const len = pixels32.length;
+            for (let i = 0; i < len; i++) {
+                const v = (Math.random() * 256) | 0;
+                pixels32[i] = (0xFF << 24) | (v << 16) | (v << 8) | v;
+            }
+            ctx.putImageData(idata, 0, 0);
+            requestAnimationFrame(drawNoise);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        drawNoise();
+
+
+        function setupTrimmedLoop(audio) {
+            audio.loop = false;
+            audio.addEventListener('loadedmetadata', () => {
+                audio.currentTime = audio.duration * 0.01;
+            });
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration && audio.currentTime >= audio.duration * 0.99) {
+                    audio.currentTime = audio.duration * 0.01;
+                    audio.play().catch(() => { });
+                }
+            });
+            audio.addEventListener('ended', () => {
+                audio.currentTime = audio.duration * 0.01;
+                audio.play().catch(() => { });
+            });
+        }
+
+        const audioStatic = new Audio('assets/audio/static.mp3');
+        const audioBg = new Audio('assets/audio/background.mp3');
+        setupTrimmedLoop(audioStatic);
+        setupTrimmedLoop(audioBg);
+
+
+        const DIALOGUE = [
+            "What have I done...",
+            "I can't live without you, Anja....",
+            "Richieu...",
+            "To die, it's easy. But you have to struggle for life....",
+            "I'm tired from talking, Richieu, and it's enough stories for now...",
+            "And here, my troubles began...",
+            "They took from us our names. And here they put me my number...",
+        ];
+
+        const dialogueBox = document.getElementById('dialogue-box');
+        let dialogueFadeTimer = null;
+        let dialogueIndex = 0;   
+
+        function showDialogue() {
+            const line = DIALOGUE[dialogueIndex];
+            dialogueIndex = (dialogueIndex + 1) % DIALOGUE.length;
+            dialogueBox.textContent = line;
+            dialogueBox.classList.add('visible');
+            clearTimeout(dialogueFadeTimer);
+            dialogueFadeTimer = setTimeout(() => {
+                dialogueBox.classList.remove('visible');
+            }, 3500);
+        }
+
+
+        const SFX_CONFIG = {
+            'crysfx.mp3': { fadeOutAt: 5, stopAt: 6 },
+            'rain.mp3':   { gain: 1.5 },
+            'run.mp3':    { gain: 5 },
+        };
+
+        let _audioCtx = null;
+        function getAudioCtx() {
+            if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return _audioCtx;
+        }
+
+        let sfxPool  = [];   
+        let sfxIndex = 0;    
+
+        async function loadSfxPool() {
+            try {
+                const res = await fetch('assets/audio/shuffle/');
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const hrefs = [...doc.querySelectorAll('a[href]')]
+                    .map(a => decodeURIComponent(a.getAttribute('href')))
+                    .filter(h => /\.mp3$/i.test(h) && !h.includes('/'));
+
+                sfxPool = hrefs.map(h => 'assets/audio/shuffle/' + h.split('/').pop());
+
+                if (sfxPool.length === 0) throw new Error('No mp3 files found in listing.');
+                console.log('[SFX] Pool loaded from directory:', sfxPool);
+            } catch (e) {
+                console.warn('[SFX] Directory listing failed; using hardcoded fallback.', e);
+                sfxPool = [
+                    'assets/audio/shuffle/crysfx.mp3',
+                    'assets/audio/shuffle/gun.mp3',
+                    'assets/audio/shuffle/run.mp3',
+                    'assets/audio/shuffle/rain.mp3',
+                    'assets/audio/shuffle/thunder.mp3',
+                ];
+            }
+        }
+
+        function nextSfxTrack() {
+            const track = sfxPool[sfxIndex];
+            sfxIndex = (sfxIndex + 1) % sfxPool.length;
+            return track;
+        }
+
+        function playSfx() {
+            if (sfxPool.length === 0) return;
+
+            const track = nextSfxTrack();
+            const filename = track.split('/').pop();
+            const config = SFX_CONFIG[filename] || {};
+            const sfx = new Audio(track);
+
+            if (config.gain) {
+                const ctx = getAudioCtx();
+                const source = ctx.createMediaElementSource(sfx);
+                const gainNode = ctx.createGain();
+                gainNode.gain.value = config.gain;
+                source.connect(gainNode);
+                gainNode.connect(ctx.destination);
+            }
+
+            if (config.fadeOutAt !== undefined) {
+                const stopAt = config.stopAt ?? config.fadeOutAt + 1;
+                const fadeDuration = stopAt - config.fadeOutAt;   
+                let fadeTimer = null;
+
+                sfx.addEventListener('timeupdate', () => {
+                    if (sfx.currentTime >= config.fadeOutAt && !fadeTimer) {
+                        fadeTimer = setInterval(() => {
+                            const elapsed = sfx.currentTime - config.fadeOutAt;
+                            const progress = Math.min(elapsed / fadeDuration, 1);
+                            sfx.volume = Math.max(0, 1 - progress);
+                            if (progress >= 1) {
+                                sfx.pause();
+                                clearInterval(fadeTimer);
+                            }
+                        }, 50);   
+                    }
+                });
+            }
+
+            sfx.play().catch(() => { });
+            showDialogue();
+        }
+
+        function startSfxSchedule() {
+            setTimeout(() => {
+                playSfx();
+                setInterval(playSfx, 7000);
+            }, 3000);
+        }
+
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            await loadSfxPool();
+            audioStatic.play().catch(() => { });
+            audioBg.play().catch(() => { });
+            startSfxSchedule();
+            document.getElementById('vladek').classList.add('zooming');
+            document.getElementById('vladek-wrapper').classList.add('shaking');
+            const screen = document.getElementById('loading-screen');
+            screen.classList.add('fade-out');
+            setTimeout(() => screen.remove(), 950);
+        });
+        const infoOverlay = document.getElementById('info-modal-overlay');
+
+        document.getElementById('info-btn').addEventListener('click', () => {
+            infoOverlay.classList.add('open');
+        });
+
+        document.getElementById('info-modal-close').addEventListener('click', () => {
+            infoOverlay.classList.remove('open');
+        });
+
+        infoOverlay.addEventListener('click', (e) => {
+            if (e.target === infoOverlay) infoOverlay.classList.remove('open');
+        });
+
+    </script>
+</body>
+
+</html>
