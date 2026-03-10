@@ -30,15 +30,21 @@
 
         #loading-screen {
             position: fixed;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 999;
             background: #080808;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2.2rem;
             transition: opacity 0.9s ease;
+        }
+
+        #loading-screen > * + * {
+            margin-top: 2.2rem;
         }
 
         #loading-screen.fade-out {
@@ -48,6 +54,7 @@
 
         #loading-title {
             font-family: 'UnifrakturCook', cursive;
+            font-size: 3rem; /* Fallback */
             font-size: clamp(2rem, 5.5vw, 4.2rem);
             color: #e8e0d0;
             letter-spacing: 0.04em;
@@ -61,6 +68,7 @@
         }
 
         #loading-rule {
+            width: 260px; /* Fallback */
             width: clamp(160px, 40vw, 320px);
             height: 1px;
             background: linear-gradient(to right, transparent, rgba(200, 180, 140, 0.5), transparent);
@@ -68,6 +76,7 @@
 
         #loading-subtitle {
             font-family: 'Special Elite', cursive;
+            font-size: 1rem; /* Fallback */
             font-size: clamp(0.85rem, 2.2vw, 1.1rem);
             color: #888;
             text-align: center;
@@ -78,6 +87,7 @@
 
         #start-btn {
             font-family: 'Special Elite', cursive;
+            font-size: 0.95rem; /* Fallback */
             font-size: clamp(0.85rem, 2vw, 1rem);
             color: #c8b888;
             background: transparent;
@@ -102,13 +112,19 @@
 
         #scene {
             position: fixed;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
         }
 
         /* Layer 0 — cycling background */
         #bg-wrapper {
             position: absolute;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 0;
             overflow: hidden;
         }
@@ -122,7 +138,10 @@
 
         #vladek-wrapper {
             position: absolute;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 1;
             pointer-events: none;
         }
@@ -188,7 +207,10 @@
 
         #vignette {
             position: absolute;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 2;
             background: radial-gradient(ellipse at center,
                     transparent 30%,
@@ -198,7 +220,10 @@
 
         #static-canvas {
             position: absolute;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             z-index: 3;
@@ -213,6 +238,7 @@
             left: 50%;
             transform: translateX(-50%);
             font-family: 'UnifrakturCook', cursive;
+            font-size: 2.8rem; /* Fallback */
             font-size: clamp(2rem, 6vw, 4rem);
             font-weight: 700;
             color: #f0e8d0;
@@ -265,7 +291,10 @@
 
         #info-modal-overlay {
             position: fixed;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 100;
             background: rgba(0, 0, 0, 0.72);
             display: flex;
@@ -309,6 +338,7 @@
 
         #info-modal h2 {
             font-family: 'UnifrakturCook', cursive;
+            font-size: 1.6rem; /* Fallback */
             font-size: clamp(1.3rem, 3.5vw, 1.9rem);
             color: #e8e0d0;
             margin-bottom: 1.2rem;
@@ -317,6 +347,7 @@
 
         #info-modal p {
             font-family: 'Special Elite', cursive;
+            font-size: 0.9rem; /* Fallback */
             font-size: clamp(0.82rem, 2vw, 0.97rem);
             color: #999;
             line-height: 1.9;
@@ -411,7 +442,7 @@
 
         window.addEventListener('resize', applyBgSize);
         applyBgSize();
-        setInterval(cycleBg, 100);
+        setInterval(cycleBg, 50);
 
         const canvas = document.getElementById('static-canvas');
         const ctx = canvas.getContext('2d');
@@ -552,7 +583,7 @@
             }
 
             if (config.fadeOutAt !== undefined) {
-                const stopAt = config.stopAt ?? config.fadeOutAt + 1;
+                const stopAt = config.stopAt !== undefined ? config.stopAt : config.fadeOutAt + 1;
                 const fadeDuration = stopAt - config.fadeOutAt;   
                 let fadeTimer = null;
 
